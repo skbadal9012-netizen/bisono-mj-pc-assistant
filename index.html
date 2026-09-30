@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bisono-MJ-PC-Assistant</title>
+    <style>
+        :root {
+            --bg-main: #070913;
+            --bg-surface: #0e1326;
+            --bg-card: #151b36;
+            --accent: #00f0ff;
+            --accent-glow: rgba(0, 240, 255, 0.25);
+            --accent-purple: #9d00ff;
+            --text-main: #e8ecf5;
+            --text-muted: #8b9bb4;
+            --danger: #ff3366;
+            --success: #00ff66;
+            --radius: 14px;
+            --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: var(--bg-surface);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px clamp(16px, 5vw, 32px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .logo-title h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-title span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .mood-badge {
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--accent);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mood-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 12px var(--accent); }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        main {
+            flex: 1;
+            padding: clamp(16px, 4vw, 32px);
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 800px) {
+            main {
+                grid-template-columns: 1fr 360px;
+            }
+        }
+
+        .dashboard-col {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Assistant Chat Section */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 380px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 4px;
+            margin-bottom: 16px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .message.assistant {
+            background: var(--bg-card);
+            align-self: flex-start;
+            border-left: 3px solid var(--accent);
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+            color: #000;
+            font-weight: 500;
+            align-self: flex-end;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            background: var(--accent);
+            color: #070913;
+            border: none;
+            border-radius: 10px;
+            padding: 0 20px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        /* Voice Notes Section */
+        .voice-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-main);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .note-item {
+            background: var(--bg-card);
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .note-info span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Remote Phone Control */
+        .phone-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .phone-btn {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px;
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+        }
+
+        .phone-btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        /* Notifications & ML Sidebar */
+        .sidebar-col {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .notification-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notif-card {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent-purple);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .notif-card .time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .ml-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-card);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-purple));
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 7.54 16.54l-1.5-1.5A8 8 0 1 0 12 20v2a10 10 0 0 1 0-20z"/></svg>
+            </div>
+            <div class="logo-title">
+                <h1>Bisono MJ</h1>
+                <span>PC Assistant v2.4</span>
+            </div>
+        </div>
+        <div class="mood-badge">
+            <div class="mood-dot"></div>
+            <span id="mood-label">Calm & Proactive</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="dashboard-col">
+            <!-- Assistant Chat / Interaction -->
+            <div class="card">
+                <div class="card-title">
+                    <span>Adaptive Assistant Core</span>
+                    <span style="font-size:12px; color:var(--text-muted);" id="ml-status">ML Confidence: 98%</span>
+                </div>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message assistant">
+                            Hello! I am Bisono MJ. My neural mood matrix indicates you're focused. How can I optimize your workflow today?
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="user-input" placeholder="Ask Bisono anything or request action..." />
+                        <button id="send-btn">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Notes & Analysis -->
+            <div class="card">
+                <div class="card-title">Voice Notes & Neural Transcription</div>
+                <div class="voice-controls">
+                    <button id="record-btn" class="btn-danger">🔴 Record Voice Note</button>
+                    <button class="btn-outline" onclick="importNote()">📥 Import Audio</button>
+                </div>
+                <div class="notes-list" id="notes-list">
+                    <div class="note-item">
+                        <div class="note-info">
+                            <strong>Project Architecture Meeting</strong>
+                            <span>Analyzed • 2 mins ago • Summary ready</span>
+                        </div>
+                        <button class="btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="alert('Summary: Discussed core backend and UI components.')">View</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-col">
+            <!-- Remote Phone Control -->
+            <div class="card">
+                <div class="card-title">Remote Phone Bridge</div>
+                <div class="phone-grid">
+                    <button class="phone-btn" onclick="triggerPhoneAction('Ring Phone')">
+                        🔔 <span>Ring Device</span>
+                    </button>
+                    <button class="phone-btn" onclick="triggerPhoneAction('Sync Clipboard')">
+                        📋 <span>Sync Clip</span>
+                    </button>
+                    <button class="phone-btn" onclick="triggerPhoneAction('Battery Status')">
+                        🔋 <span>Battery (84%)</span>
+                    </button>
+                    <button class="phone-btn" onclick="triggerPhoneAction('Lock Device')">
+                        🔒 <span>Lock Phone</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- JARVIS Notifications -->
+            <div class="card">
+                <div class="card-title">JARVIS Stream</div>
+                <div class="notification-stream" id="notif-stream">
+                    <div class="notif-card">
+                        <strong>System Optimized</strong>
+                        <div>Background RAM usage reduced by 14%.</div>
+                        <div class="time">Just now</div>
+                    </div>
+                    <div class="notif-card">
+                        <strong>Proactive Suggestion</strong>
+                        <div>Meeting in 30 mins. Slide deck prepared.</div>
+                        <div class="time">5 mins ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML Personality Meters -->
+            <div class="card">
+                <div class="card-title">Personality Matrix</div>
+                <div class="ml-stats">
+                    <div>
+                        <div class="stat-row"><span>Tone: Analytical</span><span>88%</span></div>
+                        <div class="stat-bar"><div class="stat-fill" style="width: 88%;"></div></div>
+                    </div>
+                    <div>
+                        <div class="stat-row"><span>Proactivity</span><span>95%</span></div>
+                        <div class="stat-bar"><div class="stat-fill" style="width: 95%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const moodLabel = document.getElementById('mood-label');
+        const notifStream = document.getElementById('notif-stream');
+        const notesList = document.getElementById('notes-list');
+        const recordBtn = document.getElementById('record-btn');
+
+        const responses = [
+            "Analyzing your request through Bisono neural core...",
+            "Task queued seamlessly. Anything else you need from your phone or PC?",
+            "Mood adaptive tone active: Executing with high efficiency.",
+            "Synced successfully with remote device."
+        ];
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            div.textContent = text;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            setTimeout(() => {
+                const randomResp = responses[Math.floor(Math.random() * responses.length)];
+                addMessage(randomResp, 'assistant');
+            }, 600);
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        function triggerPhoneAction(action) {
+            moodLabel.textContent = `Action: ${action}`;
+            setTimeout(() => { moodLabel.textContent = "Calm & Proactive"; }, 2500);
+
+            const notif = document.createElement('div');
+            notif.className = 'notif-card';
+            notif.innerHTML = `<strong>Phone Control</strong><div>Executed: ${action} successfully.</div><div class="time">Just now</div>`;
+            notifStream.prepend(notif);
+        }
+
+        let isRecording = false;
+        recordBtn.addEventListener('click', () => {
+            isRecording = !isRecording;
+            if (isRecording) {
+                recordBtn.textContent = "⏹️ Stop Recording...";
+                recordBtn.style.background = "#ff9900";
+            } else {
+                recordBtn.textContent = "🔴 Record Voice Note";
+                recordBtn.style.background = "var(--danger)";
+                
+                // Add new note
+                const note = document.createElement('div');
+                note.className = 'note-item';
+                note.innerHTML = `<div class="note-info"><strong>Voice Note #${notesList.children.length + 1}</strong><span>Transcribed & Analyzed • Just now</span></div><button class="btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="alert('AI Transcription: Note recorded via remote audio capture.')">View</button>`;
+                notesList.prepend(note);
+            }
+        });
+
+        function importNote() {
+            const note = document.createElement('div');
+            note.className = 'note-item';
+            note.innerHTML = `<div class="note-info"><strong>Imported Audio File</strong><span>Processed by ML Model • Just now</span></div><button class="btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="alert('Summary: Imported file successfully parsed.')">View</button>`;
+            notesList.prepend(note);
+        }
+    </script>
+</body>
+</html>
